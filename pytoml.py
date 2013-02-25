@@ -64,7 +64,7 @@ def variable_to_str(var):
     elif isinstance(var, (int, float, long, complex)):
         return '{0}'.format(var)
     elif isinstance(var, (str, unicode)):
-        return '{"{0}"'.format(var.encode('string-escape'))
+        return '{"{0}"'.format(var.encode('unicode-escape'))
 
 if __name__=='__main__':
     print "You crazy? Import in your python script, don't call from the command line!"
