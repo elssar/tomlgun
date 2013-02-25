@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#
 
 """
 Python parser for TOML - https://github.com/mojombo/toml
@@ -11,29 +10,60 @@ __license__= 'MIT'
 
 import datetime
 
+# -----------------Load section------------
+
 def load(txt):
     """
-    Will create a dict from a toml file
+    Will create a dict from a toml file.
+    This is currently in the works
     """
     try:
-        if not (isinstance(txt, str) or isinstance(txt, unicode)):
+        if not isinstance(txt, (str, unicode)):
             raise Exception("Can't parse non string values")
     except Exception, e:
         print e
         exit()
     
 
-def dump(toml):
+# -----------Dump section------------------
+
+def dump(toml, LEVEL=-1, PARENT=''):
     """
     Will convert a toml dict to toml file format.
-    Caution! dump will not preserve formatting, comments and order.
+    Caution! If using a loaded config, formatting, comments and order won't be preserved.
     If these mean anything to you, don't use!
+    Usage: dump(toml-dict, [LEVEL=0,PARENT='',])
+    returns: str
     """
     try:
         if not isinstance(toml, dict):
             raise Exception("Can't pass non dict value to dump")
-        
     except Exception, e:
         print e
         exit()
+    txt= ''
+    for key in toml:
+        if isisntance(toml[key], dict):
+            txt+= '{0}[{1}{2}]\n'.format('\t'*LEVEL, PARENT, key)
+            txt+= dump(toml[key], LEVEL+1, key+'.')
+        else:
+            txt+= '{0}{1}\n'.format('\t'*LEVEL, key_val_to_str(key, toml[key]))
+    return txt
 
+def key_val_to_str(key, val):
+    return '{0} = {1}'.format(key, variable_to_str(val))
+
+def variable_to_str(var):
+    if isinstance(var, list):
+        s= ''
+        for val in var:
+            s+= '{0} ,'.format(variable_to_srt(val))
+        return '[{0}]'.format(s[:-2])
+    elif isinstance(var, (int, float, long, complex)):
+        return '{0}'.format(var)
+    elif isinstance(val, (str, unicode)):
+        return '{"{0}"'.format(var)
+
+if __name__=='__main__':
+    print "You crazy? Import in your python script, don't call from the command line!"
+    print ">_<"
