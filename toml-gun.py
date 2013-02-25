@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- encoding: utf-8 -*-
 
 """
 Python parser for TOML - https://github.com/mojombo/toml
@@ -24,6 +25,7 @@ def load(txt):
         print e
         exit(-1)
     toml= {}
+    subkey=[]
     lines= txt.splitlines()
     for line in lines:
         rule= line.strip()
@@ -31,7 +33,11 @@ def load(txt):
             continue
         if rule[0]=='#':
             continue
-        
+        if rule[0]=='[':
+            subkey= rule[1:rule.find(']')].split('.')
+            temp= toml
+            for key in subkey:
+                if not key in temp:
 
 # -----------Dump section------------------
 
@@ -74,7 +80,7 @@ def variable_to_str(var):
     elif isinstance(var, bool):
         return'{0}'.format(['false', 'true'][var])
     elif isinstance(var, datetime):
-        return'{0}Z'.format(var.isoformat()[:19])
+        return'{0}Z'.format(var.isoformat()[:19])  #h/t https://github.com/uiri/toml/blob/master/toml.py
 
 if __name__=='__main__':
     print "You crazy? Import in your python script, don't call from the command line!"
