@@ -25,7 +25,13 @@ def load(txt):
         exit(-1)
     toml= {}
     lines= txt.splitlines()
-    
+    for line in lines:
+        rule= line.strip()
+        if rule=='':
+            continue
+        if rule[0]=='#':
+            continue
+        
 
 # -----------Dump section------------------
 
@@ -65,6 +71,10 @@ def variable_to_str(var):
         return '{0}'.format(var)
     elif isinstance(var, (str, unicode)):
         return '{"{0}"'.format(var.encode('unicode-escape'))
+    elif isinstance(var, bool):
+        return'{0}'.format(['false', 'true'][var])
+    elif isinstance(var, datetime):
+        return'{0}Z'.format(var.isoformat()[:19])
 
 if __name__=='__main__':
     print "You crazy? Import in your python script, don't call from the command line!"
