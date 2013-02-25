@@ -1,4 +1,4 @@
-toml-gun
+tomlgun
 ======
 
 Python parser for [TOML](https://github.com/mojombo/toml)
