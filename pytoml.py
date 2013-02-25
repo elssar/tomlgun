@@ -22,7 +22,9 @@ def load(txt):
             raise Exception("Can't parse non string values")
     except Exception, e:
         print e
-        exit()
+        exit(-1)
+    toml= {}
+    lines= txt.splitlines()
     
 
 # -----------Dump section------------------
@@ -40,7 +42,7 @@ def dump(toml, LEVEL=-1, PARENT=''):
             raise Exception("Can't pass non dict value to dump")
     except Exception, e:
         print e
-        exit()
+        exit(-1)
     txt= ''
     for key in toml:
         if isisntance(toml[key], dict):
@@ -61,8 +63,8 @@ def variable_to_str(var):
         return '[{0}]'.format(s[:-2])
     elif isinstance(var, (int, float, long, complex)):
         return '{0}'.format(var)
-    elif isinstance(val, (str, unicode)):
-        return '{"{0}"'.format(var)
+    elif isinstance(var, (str, unicode)):
+        return '{"{0}"'.format(var.encode('string-escape'))
 
 if __name__=='__main__':
     print "You crazy? Import in your python script, don't call from the command line!"
