@@ -88,7 +88,26 @@ def parse_token(token):
     raise Exception('Error! Invalid markup')
 
 def parse_string(token):
-    pass
+    if len(token)==1 or token[1:].find('"')==-1:
+        raise Exception('Error! Invalid markup')
+    flag= False
+    for i, char in enumerate(token[1:]):
+        if char=='"':
+            if i==0:
+                flag= True
+                break
+            if token[i]!='\\' or token[i-1]=='\\':
+                flag= True
+                break
+    if not flag:
+        raise Exception('Error! Invalid markup')
+    if len(token)>i+2 and token[i+3:].strip()[0]!='#':
+        raise Exception('Error! Invalid markup')
+    return token[1:i+1].decode('unicode-escape')
+
+# I know the string parsing is a lot unwieldly, and could've been better
+# done with regular expressions, but I'm a regex noob, and regex broke my
+# brain this morning, so this is the best I could come up with, with a broken brain
     
 def parse_array(token):
     pass
