@@ -76,7 +76,15 @@ def parse_token(token):
         return parse_date(token[:20])
     number_format= compile('^[-]?\d+[.]?\d+')
     if token[0] in ['-', '.'] or token[0] in digits:
-        return [float(token), int(token)][float(token)==int(token)]
+        regx= number_format.match(token)
+        if regx:
+            start, end= regx.span()
+            if len(token)>end:
+                s= token[end:].strip()
+                if s[0]!='#':
+                    raise Exception('Error! Invalid markup')
+            num= token[:end]
+            return [float(num), int(num)][int(num)==float(num)]
     raise Exception('Error! Invalid markup')
 
 def parse_string(token):
