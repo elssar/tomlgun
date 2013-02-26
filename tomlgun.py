@@ -9,7 +9,10 @@ TOML is like INI, only better, or so Tom Preston-Werner says.
 __author__= 'elssar <elssar@altrawcode.com>'
 __license__= 'MIT'
 
-import datetime
+from datetime import datetime
+from re import match, compile as compile
+from string import digits
+from dateutil.parser import parse as parse_date
 
 # -----------------Load section------------
 
@@ -25,20 +28,63 @@ def load(txt):
         print e
         exit(-1)
     toml= {}
-    subkey=[]
+    current_keygroup= toml
     lines= txt.splitlines()
-    for line in lines:
-        rule= line.strip()
-        if rule=='':
-            continue
-        if rule[0]=='#':
-            continue
-        if rule[0]=='[':
-            subkey= rule[1:rule.find(']')].split('.')
-            temp= toml
-            for key in subkey:
-                if not key in temp:
+    try:
+        for line in lines:
+            rule= line.strip()
+            if rule=='':
+                continue
+            if rule[0]=='#':
+                continue
+            if rule[0]=='[':
+                subkey= rule[1:rule.find(']')].split('.')
+                current_keygroup= toml
+                for key in subkey:
+                    if not key in current_keygroup:
+                        current_keygroup[key]= {}
+                    elif not isinstance(current_keygroup[key], dict):
+                        raise Exception('Error! Multiple values assigned to the same key')
+                    current_keygroup= current_keygroup[key]
+            else:
+                key, value= parse_line(line)
+                if key in current_keygroup:
+                    raise Exception('Error! Multiple values assigned to the same key')
+                current_keygroup[key]= value
+    except Exception, e:
+        print e
+        exit(-1)
 
+def parse_line(line):
+    tokens= line.split('=', 1)
+    if len(tokens)<2:
+        raise Exception('Error! The key has no value')
+    token= tokens[1].strip()
+    return token[0].strip, parse_token(token)
+
+def parse_token(token):
+    if token[0]=='[':
+        return parse_array(token)
+    if token[0]=='"':
+        return parse_string(token)
+    if token[:4] in ('true', 'false'):
+        if len(token)==4 or token[4:].strip()[0]=='#':
+            return [False, True][token[:4]=='true']
+        raise Exception('Error! Invalid markup')
+    date_format= compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')
+    if match(date_format, token[:20]) and (len(token==20) or token[20:].strip()[0]=='#'):
+        return parse_date(token[:20])
+    number_format= compile('^[-]?\d+[.]?\d+')
+    if token[0] in ['-', '.'] or token[0] in digits:
+        return [float(token), int(token)][float(token)==int(token)]
+    raise Exception('Error! Invalid markup')
+
+def parse_string(token):
+    pass
+    
+def parse_array(token):
+    pass
+    
 # -----------Dump section------------------
 
 def dump(toml, LEVEL=-1, PARENT=''):
@@ -57,7 +103,7 @@ def dump(toml, LEVEL=-1, PARENT=''):
         exit(-1)
     txt= ''
     for key in toml:
-        if isisntance(toml[key], dict):
+        if isinstance(toml[key], dict):
             txt+= '{0}[{1}{2}]\n'.format('\t'*LEVEL, PARENT, key)
             txt+= dump(toml[key], LEVEL+1, key+'.')
         else:
@@ -80,7 +126,7 @@ def variable_to_str(var):
     elif isinstance(var, bool):
         return'{0}'.format(['false', 'true'][var])
     elif isinstance(var, datetime):
-        return'{0}Z'.format(var.isoformat()[:19])  #h/t https://github.com/uiri/toml/blob/master/toml.py
+        return'{0}Z'.format(var.isoformat()[:19])  # h/t https://github.com/uiri/toml/blob/master/toml.py
 
 if __name__=='__main__':
     print "You crazy? Import in your python script, don't call from the command line!"
