@@ -14,7 +14,7 @@ from re import match, compile as compile
 from string import digits
 from dateutil.parser import parse as parse_date
 
-# -----------------Load section------------
+# -----------------Load section-------------------
 
 def load(txt):
     """
@@ -23,21 +23,18 @@ def load(txt):
     """
     try:
         if not isinstance(txt, (str, unicode)):
-            raise Exception("Can't parse non string values")
-    except Exception, e:
-        print e
-        exit(-1)
-    toml= {}
-    current_keygroup= toml
-    lines= txt.splitlines()
-    try:
+            raise Exception("Can't parse non strings")
+        toml= {}
+        current_keygroup= toml
+        lines= txt.splitlines()
+        IN_ARRAY= False
         for line in lines:
             rule= line.strip()
             if rule=='':
                 continue
             if rule[0]=='#':
                 continue
-            if rule[0]=='[':
+            if rule[0]=='[' and not IN_ARRAY:  # in multiline arrays, the first element on a line could be an array
                 subkey= rule[1:rule.find(']')].split('.')
                 current_keygroup= toml
                 for key in subkey:
@@ -48,6 +45,14 @@ def load(txt):
                     current_keygroup= current_keygroup[key]
             else:
                 key, value= parse_line(line)
+                if isinstance(value, tuple):
+                    if (not IN_ARRAY) and key in current_keygroup:   # Explicit is better than implicit
+                        raise Exception('Error! Multiple values assigned to the same key')
+                    if key not in current_keygroup:
+                        current_keygroup[key]= []
+                    for values in value[0]:
+                        current_keygroup[key].append(values)
+                    IN_ARRAY= value[1]
                 if key in current_keygroup:
                     raise Exception('Error! Multiple values assigned to the same key')
                 current_keygroup[key]= value
@@ -74,11 +79,11 @@ def parse_token(token):
     date_format= compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')
     if match(date_format, token[:20]) and (len(token==20) or token[20:].strip()[0]=='#'):
         return parse_date(token[:20])
-    number_format= compile('^[-]?\d+[.]?\d+')
-    if token[0] in ['-', '.'] or token[0] in digits:
-        regx= number_format.match(token)
-        if regx:
-            start, end= regx.span()
+    number_format= compile('^[-]?\d+[.]?\d+')   # This looks right, but isn't working on my interpreter
+    if token[0] in ['-', '.'] or token[0] in digits:   # I don't know what I was thinking, but
+        regx= number_format.match(token)               # I'm fairly certain it works, so
+        if regx:                                       # 'if ain't broke, don't fix it'
+            start, end= regx.span()                    # Touch only if it breaks
             if len(token)>end:
                 s= token[end:].strip()
                 if s[0]!='#':
@@ -108,11 +113,21 @@ def parse_string(token):
 # I know the string parsing is a lot unwieldly, and could've been better
 # done with regular expressions, but I'm a regex noob, and regex broke my
 # brain this morning, so this is the best I could come up with, with a broken brain
+# If anyone is interested, the regex was breaking when there are " in the line, after
+# the intended end of string
+# Example -
+# key= "string" " <--this would break the regex
+# key= "string" #comment with a " in it <--gah!
+# Oh why oh why did I decide to write a parser /o\
+#                                              -|-
+#                                              / \
+# - elssar, ~2013-02-26T16:59:31 IST
     
 def parse_array(token):
-    pass
+    items= [x.strip() for x in token.split(',')]
     
-# -----------Dump section------------------
+    
+# ---------------------Dump section---------------------
 
 def dump(toml, LEVEL=-1, PARENT=''):
     """
