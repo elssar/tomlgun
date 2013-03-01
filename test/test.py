@@ -18,5 +18,12 @@ with open(path.join(base, 'example.yaml'), 'r') as y:
 with open(path.join(base, 'example.toml'), 'r') as t:
     toml= tomlgun.load(t.read())
 
+with open(path.join(base, 'hard_example.yaml'), 'r') as hy:
+    hard_yaml= load(hy)
+
+with open(path.join(base, 'hard_example.toml'), 'r') as ht:
+    hard_toml= tomlgun.load(ht.read())
+
 if __name__=='__main__':
-    print yaml==toml           # Gotta love python!
+    print 'Easy example: ', yaml==toml           # Gotta love python!
+    print 'Hard example: ', hard_yaml==hard_toml
