@@ -144,13 +144,15 @@ def dump(toml, LEVEL=-1, PARENT=''):
         print e
         exit(-1)
     txt= ''
+    keys= ''
+    keygroups= ''
     for key in toml:
         if isinstance(toml[key], dict):
-            txt+= '{0}[{1}{2}]\n'.format('\t'*LEVEL, PARENT, key)
-            txt+= dump(toml[key], LEVEL+1, key+'.')
+            keygroup+= '{0}[{1}{2}]\n'.format('\t'*LEVEL, PARENT, key)
+            keygroup+= dump(toml[key], LEVEL+1, key+'.')
         else:
-            txt+= '{0}{1}\n'.format('\t'*LEVEL, key_val_to_str(key, toml[key]))
-    return txt
+            key+= '{0}{1}\n'.format('\t'*LEVEL, key_val_to_str(key, toml[key]))
+    return key+keygroup
 
 def key_val_to_str(key, val):
     return '{0} = {1}'.format(key, variable_to_str(val))
