@@ -79,17 +79,22 @@ def parse_token(token):
     date_format= compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')
     if match(date_format, token[:20]) and (len(token==20) or token[20:].strip()[0]=='#'):
         return parse_date(token[:20])
-    number_format= compile('^[-]?\d+[.]?\d+')   # This looks right, but isn't working on my interpreter
-    if token[0] in ['-', '.'] or token[0] in digits:   # I don't know what I was thinking, but
-        regx= number_format.match(token)               # I'm fairly certain it works, so
-        if regx:                                       # 'if ain't broke, don't fix it'
-            start, end= regx.span()                    # Touch only if it breaks
-            if len(token)>end:
-                s= token[end:].strip()
-                if s[0]!='#':
+    if token[0]=='-' or token[0] in digits:
+        point= False
+        for end, c in enumerate(token[1:]):
+            if c not in digits:
+                if c=='.' and not point:
+                    point= True
+                    continue
+                elif c=='#':
+                    end= end-1
+                    break
+                elif c==' ' or c=='\t':
+                    continue
+                else:
                     raise Exception('Error! Invalid markup')
-            num= token[:end]
-            return [float(num), int(num)][int(num)==float(num)]
+        num= token[:end+1]
+        return [float(num), int(num)][int(num)==float(num)]
     raise Exception('Error! Invalid markup')
 
 def parse_string(token):
