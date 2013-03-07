@@ -53,9 +53,10 @@ def load(txt):
                     for values in value[0]:
                         current_keygroup[key].append(values)
                     IN_ARRAY= value[1]
-                if key in current_keygroup:
+                elif key in current_keygroup:
                     raise Exception('Error! Multiple values assigned to the same key')
-                current_keygroup[key]= value
+                else:
+                    current_keygroup[key]= value
     except Exception, e:
         print e
         exit(-1)
@@ -128,8 +129,10 @@ def parse_string(token):
 #                                              / \
 # - elssar, ~2013-02-26T16:59:31 IST
     
-def parse_array(token):
-    items= [x.strip() for x in token.split(',')]
+def parse_array(token, main_array=True):
+    content= [token, token[1:].strip()][token[0]=='[' and main_array]
+    if len(content)==0 or content[0]=='#':
+        return ([], True)
     
     
 # ---------------------Dump section---------------------
